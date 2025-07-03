@@ -119,8 +119,14 @@ const JobTile = (props) => {
   };
 
   const handleJobUpdate = () => {
+    console.log(jobDetails);
     axios
-      .put(`${apiList.jobs}/${job._id}`, jobDetails, {
+      .put(`${apiList.jobs}/${job._id}`, {
+        maxApplicants: jobDetails.maxApplicants,
+        maxPositions: jobDetails.maxPositions,
+        deadline: jobDetails.deadline,
+        minimumCGPA: jobDetails.minimumCGPA || 0,
+      }, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -132,16 +138,15 @@ const JobTile = (props) => {
           message: response.data.message,
         });
         getData();
-        handleCloseUpdate();
+        setOpenUpdate(false);
       })
       .catch((err) => {
-        console.log(err.response);
         setPopup({
           open: true,
           severity: "error",
           message: err.response.data.message,
         });
-        handleCloseUpdate();
+        console.log(err.response);
       });
   };
 
@@ -168,6 +173,10 @@ const JobTile = (props) => {
           <Grid item>
             Remaining Number of Positions:{" "}
             {job.maxPositions - job.acceptedCandidates}
+          </Grid>
+          <Grid item>
+            Minimum CGPA Required:{" "}
+            {job.minimumCGPA > 0 ? job.minimumCGPA.toFixed(1) : "No requirement"}
           </Grid>
           <Grid item>
             {job.skillsets.map((skill) => (
@@ -317,6 +326,20 @@ const JobTile = (props) => {
                   handleInput("maxPositions", event.target.value);
                 }}
                 InputProps={{ inputProps: { min: 1 } }}
+                fullWidth
+              />
+            </Grid>
+            <Grid item>
+              <TextField
+                label="Minimum CGPA Required"
+                type="number"
+                variant="outlined"
+                value={jobDetails.minimumCGPA || 0}
+                onChange={(event) => {
+                  handleInput("minimumCGPA", parseFloat(event.target.value) || 0);
+                }}
+                InputProps={{ inputProps: { min: 0, max: 10, step: 0.1 } }}
+                helperText="On a scale of 10. Set 0 for no CGPA requirement"
                 fullWidth
               />
             </Grid>

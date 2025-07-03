@@ -8,6 +8,7 @@ const Recruiter = require("../db/Recruiter");
 const Job = require("../db/Job");
 const Application = require("../db/Application");
 const Rating = require("../db/Rating");
+const Admin = require("../db/Admin");
 
 const router = express.Router();
 
@@ -35,6 +36,7 @@ router.post("/jobs", jwtAuth, (req, res) => {
     jobType: data.jobType,
     duration: data.duration,
     salary: data.salary,
+    minimumCGPA: data.minimumCGPA || 0,
     rating: data.rating,
   });
 
@@ -267,6 +269,9 @@ router.put("/jobs/:id", jwtAuth, (req, res) => {
       if (data.deadline) {
         job.deadline = data.deadline;
       }
+      if (data.minimumCGPA !== undefined) {
+        job.minimumCGPA = data.minimumCGPA;
+      }
       job
         .save()
         .then(() => {
@@ -325,6 +330,20 @@ router.get("/user", jwtAuth, (req, res) => {
           return;
         }
         res.json(recruiter);
+      })
+      .catch((err) => {
+        res.status(400).json(err);
+      });
+  } else if (user.type === "admin") {
+    Admin.findOne({ userId: user._id })
+      .then((admin) => {
+        if (admin == null) {
+          res.status(404).json({
+            message: "Admin profile does not exist",
+          });
+          return;
+        }
+        res.json(admin);
       })
       .catch((err) => {
         res.status(400).json(err);
@@ -428,6 +447,38 @@ router.put("/user", jwtAuth, (req, res) => {
       .catch((err) => {
         res.status(400).json(err);
       });
+  } else if (user.type == "admin") {
+    Admin.findOne({ userId: user._id })
+      .then((admin) => {
+        if (admin == null) {
+          res.status(404).json({
+            message: "Admin profile does not exist",
+          });
+          return;
+        }
+        if (data.name) {
+          admin.name = data.name;
+        }
+        if (data.contactNumber) {
+          admin.contactNumber = data.contactNumber;
+        }
+        if (data.role) {
+          admin.role = data.role;
+        }
+        admin
+          .save()
+          .then(() => {
+            res.json({
+              message: "Admin information updated successfully",
+            });
+          })
+          .catch((err) => {
+            res.status(400).json(err);
+          });
+      })
+      .catch((err) => {
+        res.status(400).json(err);
+      });
   } else {
     JobApplicant.findOne({ userId: user._id })
       .then((jobApplicant) => {
@@ -445,6 +496,9 @@ router.put("/user", jwtAuth, (req, res) => {
         }
         if (data.skills) {
           jobApplicant.skills = data.skills;
+        }
+        if (data.cgpa !== undefined) {
+          jobApplicant.cgpa = parseFloat(data.cgpa);
         }
         if (data.resume) {
           jobApplicant.resume = data.resume;
@@ -512,70 +566,92 @@ router.post("/jobs/:id/applications", jwtAuth, (req, res) => {
             });
             return;
           }
-          Application.countDocuments({
-            jobId: jobId,
-            status: {
-              $nin: ["rejected", "deleted", "cancelled", "finished"],
-            },
-          })
-            .then((activeApplicationCount) => {
-              if (activeApplicationCount < job.maxApplicants) {
-                Application.countDocuments({
-                  userId: user._id,
-                  status: {
-                    $nin: ["rejected", "deleted", "cancelled", "finished"],
-                  },
-                })
-                  .then((myActiveApplicationCount) => {
-                    if (myActiveApplicationCount < 10) {
-                      Application.countDocuments({
-                        userId: user._id,
-                        status: "accepted",
-                      }).then((acceptedJobs) => {
-                        if (acceptedJobs === 0) {
-                          const application = new Application({
-                            userId: user._id,
-                            recruiterId: job.userId,
-                            jobId: job._id,
-                            status: "applied",
-                            sop: data.sop,
-                          });
-                          application
-                            .save()
-                            .then(() => {
-                              res.json({
-                                message: "Job application successful",
-                              });
-                            })
-                            .catch((err) => {
-                              res.status(400).json(err);
-                            });
-                        } else {
-                          res.status(400).json({
-                            message:
-                              "You already have an accepted job. Hence you cannot apply.",
-                          });
-                        }
-                      });
-                    } else {
-                      res.status(400).json({
-                        message:
-                          "You have 10 active applications. Hence you cannot apply.",
-                      });
-                    }
-                  })
-                  .catch((err) => {
-                    res.status(400).json(err);
+          
+          // Check if user meets minimum CGPA requirement
+          if (job.minimumCGPA > 0) {
+            JobApplicant.findOne({ userId: user._id })
+              .then((applicant) => {
+                if (!applicant || applicant.cgpa < job.minimumCGPA) {
+                  res.status(400).json({
+                    message: `You don't meet the minimum CGPA requirement of ${job.minimumCGPA.toFixed(1)} for this job.`,
                   });
-              } else {
-                res.status(400).json({
-                  message: "Application limit reached",
-                });
-              }
+                  return;
+                }
+                continueApplication();
+              })
+              .catch((err) => {
+                res.status(400).json(err);
+              });
+          } else {
+            continueApplication();
+          }
+          
+          function continueApplication() {
+            Application.countDocuments({
+              jobId: jobId,
+              status: {
+                $nin: ["rejected", "deleted", "cancelled", "finished"],
+              },
             })
-            .catch((err) => {
-              res.status(400).json(err);
-            });
+              .then((activeApplicationCount) => {
+                if (activeApplicationCount < job.maxApplicants) {
+                  Application.countDocuments({
+                    userId: user._id,
+                    status: {
+                      $nin: ["rejected", "deleted", "cancelled", "finished"],
+                    },
+                  })
+                    .then((myActiveApplicationCount) => {
+                      if (myActiveApplicationCount < 10) {
+                        Application.countDocuments({
+                          userId: user._id,
+                          status: "accepted",
+                        }).then((acceptedJobs) => {
+                          if (acceptedJobs === 0) {
+                            const application = new Application({
+                              userId: user._id,
+                              recruiterId: job.userId,
+                              jobId: job._id,
+                              status: "applied",
+                              sop: data.sop,
+                            });
+                            application
+                              .save()
+                              .then(() => {
+                                res.json({
+                                  message: "Job application successful",
+                                });
+                              })
+                              .catch((err) => {
+                                res.status(400).json(err);
+                              });
+                          } else {
+                            res.status(400).json({
+                              message:
+                                "You already have an accepted job. Hence you cannot apply.",
+                            });
+                          }
+                        });
+                      } else {
+                        res.status(400).json({
+                          message:
+                            "You have 10 active applications. Hence you cannot apply.",
+                        });
+                      }
+                    })
+                    .catch((err) => {
+                      res.status(400).json(err);
+                    });
+                } else {
+                  res.status(400).json({
+                    message: "Application limit reached",
+                  });
+                }
+              })
+              .catch((err) => {
+                res.status(400).json(err);
+              });
+          }
         })
         .catch((err) => {
           res.status(400).json(err);
@@ -1376,5 +1452,120 @@ router.get("/rating", jwtAuth, (req, res) => {
 //     }
 //   })(req, res, next);
 // });
+
+// Admin Routes
+
+// Admin middleware to check if user is an admin
+const isAdmin = (req, res, next) => {
+  const user = req.user;
+  if (user.type !== "admin") {
+    return res.status(401).json({
+      message: "You don't have admin permissions",
+    });
+  }
+  next();
+};
+
+// Get all job applicants for admin
+router.get("/admin/applicants", jwtAuth, isAdmin, (req, res) => {
+  JobApplicant.find({})
+    .then((applicants) => {
+      res.json(applicants);
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+});
+
+// Get all recruiters for admin
+router.get("/admin/recruiters", jwtAuth, isAdmin, (req, res) => {
+  Recruiter.find({})
+    .then((recruiters) => {
+      res.json(recruiters);
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+});
+
+// Get all jobs for admin
+router.get("/admin/jobs", jwtAuth, isAdmin, (req, res) => {
+  Job.find({})
+    .populate("userId", "email")
+    .then((jobs) => {
+      res.json(jobs);
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+});
+
+// Get all applications for admin
+router.get("/admin/applications", jwtAuth, isAdmin, (req, res) => {
+  Application.aggregate([
+    {
+      $lookup: {
+        from: "jobapplicantinfos",
+        localField: "userId",
+        foreignField: "userId",
+        as: "jobApplicant",
+      },
+    },
+    { $unwind: "$jobApplicant" },
+    {
+      $lookup: {
+        from: "jobs",
+        localField: "jobId",
+        foreignField: "_id",
+        as: "job",
+      },
+    },
+    { $unwind: "$job" },
+    {
+      $lookup: {
+        from: "recruiterinfos",
+        localField: "recruiterId",
+        foreignField: "userId",
+        as: "recruiter",
+      },
+    },
+    { $unwind: "$recruiter" },
+    {
+      $sort: {
+        dateOfApplication: -1,
+      },
+    },
+  ])
+    .then((applications) => {
+      res.json(applications);
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+});
+
+// Get detailed statistics for admin dashboard
+router.get("/admin/statistics", jwtAuth, isAdmin, (req, res) => {
+  Promise.all([
+    User.countDocuments({ type: "applicant" }),
+    User.countDocuments({ type: "recruiter" }),
+    Job.countDocuments({}),
+    Application.countDocuments({}),
+    Application.countDocuments({ status: "accepted" }),
+  ])
+    .then(([applicantCount, recruiterCount, jobCount, applicationCount, acceptedCount]) => {
+      res.json({
+        applicantCount,
+        recruiterCount,
+        jobCount,
+        applicationCount,
+        acceptedCount,
+        acceptanceRate: applicationCount > 0 ? (acceptedCount / applicationCount) * 100 : 0,
+      });
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+});
 
 module.exports = router;

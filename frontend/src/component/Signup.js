@@ -127,6 +127,7 @@ const Login = (props) => {
     name: "",
     education: [],
     skills: [],
+    cgpa: 0,
     resume: "",
     profile: "",
     bio: "",
@@ -343,6 +344,7 @@ const Login = (props) => {
           >
             <MenuItem value="applicant">Applicant</MenuItem>
             <MenuItem value="recruiter">Recruiter</MenuItem>
+            <MenuItem value="admin">Admin</MenuItem>
           </TextField>
         </Grid>
         <Grid item>
@@ -409,17 +411,28 @@ const Login = (props) => {
               />
             </Grid>
             <Grid item>
+              <TextField
+                className={classes.inputBox}
+                label="CGPA (scale of 10)"
+                variant="outlined"
+                type="number"
+                value={signupDetails.cgpa || 0}
+                onChange={(event) => 
+                  handleInput("cgpa", parseFloat(event.target.value) || 0)
+                }
+                inputProps={{
+                  min: 0,
+                  max: 10,
+                  step: 0.1
+                }}
+                helperText="Your CGPA will be considered for job eligibility"
+              />
+            </Grid>
+            <Grid item>
               <FileUploadInput
                 className={classes.inputBox}
                 label="Resume (.pdf)"
                 icon={<DescriptionIcon />}
-                // value={files.resume}
-                // onChange={(event) =>
-                //   setFiles({
-                //     ...files,
-                //     resume: event.target.files[0],
-                //   })
-                // }
                 uploadTo={apiList.uploadResume}
                 handleInput={handleInput}
                 identifier={"resume"}
@@ -430,16 +443,30 @@ const Login = (props) => {
                 className={classes.inputBox}
                 label="Profile Photo (.jpg/.png)"
                 icon={<FaceIcon />}
-                // value={files.profileImage}
-                // onChange={(event) =>
-                //   setFiles({
-                //     ...files,
-                //     profileImage: event.target.files[0],
-                //   })
-                // }
                 uploadTo={apiList.uploadProfileImage}
                 handleInput={handleInput}
                 identifier={"profile"}
+              />
+            </Grid>
+          </>
+        ) : signupDetails.type === "admin" ? (
+          <>
+            <Grid item>
+              <PhoneInput
+                country={"in"}
+                value={phone}
+                onChange={(phone) => setPhone(phone)}
+              />
+            </Grid>
+            <Grid item style={{ width: "100%" }}>
+              <TextField
+                label="Role"
+                className={classes.inputBox}
+                variant="outlined"
+                value={signupDetails.role || "System Administrator"}
+                onChange={(event) => {
+                  handleInput("role", event.target.value);
+                }}
               />
             </Grid>
           </>
@@ -479,9 +506,13 @@ const Login = (props) => {
             variant="contained"
             color="primary"
             onClick={() => {
-              signupDetails.type === "applicant"
-                ? handleLogin()
-                : handleLoginRecruiter();
+              if (signupDetails.type === "applicant") {
+                handleLogin();
+              } else if (signupDetails.type === "admin") {
+                handleLoginRecruiter();
+              } else {
+                handleLoginRecruiter();
+              }
             }}
             className={classes.submitButton}
           >

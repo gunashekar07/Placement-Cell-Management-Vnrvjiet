@@ -25,7 +25,7 @@ let schema = new mongoose.Schema(
         },
         endYear: {
           type: Number,
-          max: new Date().getFullYear(),
+          max: 2028,
           validate: [
             { validator: Number.isInteger, msg: "Year should be an integer" },
             {
@@ -39,6 +39,18 @@ let schema = new mongoose.Schema(
       },
     ],
     skills: [String],
+    cgpa: {
+      type: Number,
+      min: 0,
+      max: 10,
+      default: 0,
+      validate: {
+        validator: function (v) {
+          return v >= 0 && v <= 10;
+        },
+        msg: "CGPA must be between 0 and 10",
+      },
+    },
     rating: {
       type: Number,
       max: 5.0,

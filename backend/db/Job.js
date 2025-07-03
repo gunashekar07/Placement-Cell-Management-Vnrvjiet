@@ -117,6 +117,18 @@ let schema = new mongoose.Schema(
         },
       ],
     },
+    minimumCGPA: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 10,
+      validate: {
+        validator: function (v) {
+          return v >= 0 && v <= 10;
+        },
+        msg: "Minimum CGPA must be between 0 and 10",
+      },
+    },
     rating: {
       type: Number,
       max: 5.0,

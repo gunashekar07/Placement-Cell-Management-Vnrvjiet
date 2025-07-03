@@ -1,66 +1,147 @@
-# Job Portal
+# VNRVJIET Job Portal
 
-Job Portal is a MERN Stack based web app which helps in streamlining the flow of job application process. It allows users to select there roles (applicant/recruiter), and create an account. In this web app, login session are persistent and REST APIs are securely protected by JWT token verification. After logging in, a recruiter can create/delete/update jobs, shortlist/accept/reject applications, view resume and edit profile. And, an applicant can view jobs, perform fuzzy search with various filters, apply for jobs with an SOP, view applications, upload profile picture, upload resume and edit profile. Hence, it is an all in one solution for a job application system.
+A modern, full-stack job portal application for connecting students, recruiters, and administrators with a sleek, user-friendly interface.
 
-Demo: [Click Here](https://www.youtube.com/watch?v=lIrN-LbbBnw&ab_channel=ShlokPandey)
+## Features
 
-Directory structure of the web app is as follows:
+- **Three User Types:** Applicants (students), Recruiters, and Administrators with role-specific interfaces
+- **Job Management:** Post, search, filter, and apply for jobs
+- **Profile Management:** Create and update detailed profiles with education, skills, and documents
+- **Application Tracking:** Track status of applications for both applicants and recruiters
+- **Admin Dashboard:** Comprehensive admin panel to manage all aspects of the portal
+- **Responsive Design:** Works seamlessly on desktop, tablet, and mobile devices
 
+## Tech Stack
+
+### Frontend
+- **React.js** - Frontend framework
+- **Material-UI** - Component library with custom theming
+- **Axios** - HTTP client for API requests
+- **React Router** - Navigation and routing
+
+### Backend
+- **Node.js** - Runtime environment
+- **Express** - Web application framework
+- **MongoDB** - Database
+- **Mongoose** - MongoDB object modeling
+- **JWT** - Authentication mechanism
+
+## UI Design System
+
+The application features a modern, cohesive design system with the following components:
+
+### 1. Colors
+
+The color palette consists of:
+- **Primary**: Blue shades (#1976d2 → #115293)
+- **Secondary**: Teal shades (#26a69a → #00766c)
+- **Background**: Light gray gradients and white
+- **Success**: Green (#4caf50)
+- **Error**: Red (#f44336)
+- **Warning**: Amber (#ff9800)
+
+### 2. Typography
+
+- **Headers**: Roboto with various weights
+- **Body**: Roboto Regular
+- **Sizes** ranging from 0.75rem to 3.75rem following a consistent scale
+
+### 3. Components
+
+#### Cards
+- Subtle shadows (0 4px 20px rgba(0,0,0,0.08))
+- Rounded corners (8px border-radius)
+- Consistent padding (24px)
+- Hover animations when interactive
+
+#### Buttons
+- Primary gradient buttons for main actions
+- Outlined buttons for secondary actions
+- Border-radius of 50px for a modern look
+- Hover animations (scale and shadow)
+- Loading states with CircularProgress
+
+#### Forms
+- Outlined inputs with consistent styling
+- Icons on the left of inputs
+- Proper error validation and messaging
+- Consistent spacing and layout
+
+#### Navigation
+- Slide-hide effects on scroll
+- Active item highlighting
+- Responsive mobile menu
+
+### 4. Animations
+
+- Fade and slide transitions between screens
+- Zoom effects for list items
+- Hover effects on cards and buttons
+- Loading skeletons instead of spinners when appropriate
+
+## Pages and Components
+
+### Main Pages:
+- **Welcome** - Landing page with hero section and portal highlights
+- **Login/Signup** - Authentication pages with clean forms
+- **Home** - Job search and listing with filtering
+- **Profile** - User profile management
+- **Jobs** - Job posting and management for recruiters
+- **Applications** - Application tracking for both parties
+- **Admin Dashboard** - Portal statistics and management
+
+## Installation and Setup
+
+1. Clone the repository
 ```
-- backend/
-    - public/
-        - profile/
-        - resume/
-- frontend/
-- README.md
+git clone https://github.com/username/job-portal.git
+cd job-portal
 ```
 
-## Instructions for initializing web app:
+2. Install dependencies for both backend and frontend
+```
+# Backend dependencies
+cd backend
+npm install
 
-- Install Node JS, MongoDB in the machine.
-- Start MongoDB server: `sudo service mongod start`
-- Move inside backend directory: `cd backend`
-- Install dependencies in backend directory: `npm install`
-- Start express server: `npm start`
-- Backend server will start on port 4444.
-- Now go inside frontend directory: `cd ..\frontend`
-- Install dependencies in frontend directory: `npm install`
-- Start web app's frontend server: `npm start`
-- Frontend server will start on port 3000.
-- Now open `http://localhost:3000/` and proceed creating jobs and applications by signing up in required categories.
+# Frontend dependencies
+cd ../frontend
+npm install
+```
 
-## Dependencies:
+3. Set up environment variables
+Create a .env file in the backend directory with the following variables:
+```
+PORT=4000
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+```
 
-- Frontend
-  - @material-ui/core
-  - @material-ui/icons
-  - @material-ui/lab
-  - axios
-  - material-ui-chip-input
-  - react-phone-input-2
-- Backend
-  - bcrypt
-  - body-parser
-  - connect-flash
-  - connect-mongo
-  - cors
-  - crypto
-  - express
-  - express-session
-  - jsonwebtoken
-  - mongoose
-  - mongoose-type-email
-  - multer
-  - passport
-  - passport-jwt
-  - passport-local
-  - uuid
+4. Start the development servers
+```
+# Start backend server
+cd backend
+npm start
 
-# Machine Specifications
+# Start frontend server in a new terminal
+cd frontend
+npm start
+```
 
-Details of the machine on which the webapp was tested:
+5. Access the application
+Open your browser and navigate to `http://localhost:3000`
 
-- Operating System: Elementary OS 5.1 (Hera)
-- Terminal: Bash
-- Processor: Intel Core i7-8750H CPU @ 2.20 GHz 2.21 GHz
-- RAM: 16 GB
+## Admin Access
+
+To access the admin panel, create an admin account or use the default admin credentials:
+- Email: admin@example.com
+- Password: admin123
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- VNRVJIET for the opportunity to develop this platform
+- All contributors and testers who helped improve the application

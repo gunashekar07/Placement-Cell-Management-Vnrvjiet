@@ -44,6 +44,25 @@ app.use("/api", require("./routes/apiRoutes"));
 app.use("/upload", require("./routes/uploadRoutes"));
 app.use("/host", require("./routes/downloadRoutes"));
 
+// Add error logging middleware
+app.use((err, req, res, next) => {
+  console.error('Server Error:', {
+    message: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method,
+    body: req.body,
+    headers: req.headers,
+    query: req.query,
+  });
+  
+  res.status(500).json({
+    message: 'Internal Server Error',
+    error: process.env.NODE_ENV === 'production' ? 'Something went wrong' : err.message,
+  });
+});
+
+// Start the server
 app.listen(port, () => {
   console.log(`Server started on port ${port}!`);
 });

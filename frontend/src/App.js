@@ -17,6 +17,15 @@ import AcceptedApplicants from "./component/recruiter/AcceptedApplicants";
 import RecruiterProfile from "./component/recruiter/Profile";
 import MessagePopup from "./lib/MessagePopup";
 import isAuth, { userType } from "./lib/isAuth";
+import UploadTester from "./component/UploadTester";
+
+// Admin Components
+import AdminDashboard from "./component/admin/Dashboard";
+import AdminApplicants from "./component/admin/Applicants";
+import AdminRecruiters from "./component/admin/Recruiters";
+import AdminJobs from "./component/admin/Jobs";
+import AdminApplications from "./component/admin/Applications";
+import AdminProfile from "./component/admin/Profile";
 
 const useStyles = makeStyles((theme) => ({
   body: {
@@ -62,7 +71,7 @@ function App() {
                 <Logout />
               </Route>
               <Route exact path="/home">
-                <Home />
+                {userType() === "admin" ? <AdminDashboard /> : <Home />}
               </Route>
               <Route exact path="/applications">
                 <Applications />
@@ -70,6 +79,8 @@ function App() {
               <Route exact path="/profile">
                 {userType() === "recruiter" ? (
                   <RecruiterProfile />
+                ) : userType() === "admin" ? (
+                  <AdminProfile />
                 ) : (
                   <Profile />
                 )}
@@ -86,6 +97,33 @@ function App() {
               <Route exact path="/employees">
                 <AcceptedApplicants />
               </Route>
+              <Route exact path="/recruiter/profile">
+                <RecruiterProfile />
+              </Route>
+              
+              {/* Admin Routes */}
+              <Route exact path="/admin/dashboard">
+                <AdminDashboard />
+              </Route>
+              <Route exact path="/admin/applicants">
+                <AdminApplicants />
+              </Route>
+              <Route exact path="/admin/recruiters">
+                <AdminRecruiters />
+              </Route>
+              <Route exact path="/admin/jobs">
+                <AdminJobs />
+              </Route>
+              <Route exact path="/admin/applications">
+                <AdminApplications />
+              </Route>
+              <Route exact path="/admin/profile">
+                <AdminProfile />
+              </Route>
+              <Route exact path="/upload-test">
+                <UploadTester />
+              </Route>
+              
               <Route>
                 <ErrorPage />
               </Route>
